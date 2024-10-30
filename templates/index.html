@@ -40,6 +40,7 @@
     {% endfor %}
 </div>
 <div id="errorAlert" class="alert alert-danger mt-3" style="display: none"></div>
+<div id="successAlert" class="alert alert-success mt-3" style="display: none"></div>
 {% endblock %}
 
 {% block scripts %}
@@ -89,13 +90,24 @@
                 method: 'POST',
                 body: new FormData(e.target)
             });
+            const data = await response.json();
 
             if (!response.ok) {
-                const data = await response.json();
                 document.getElementById('errorAlert').textContent = data.error;
                 document.getElementById('errorAlert').style.display = 'block';
             } else {
-                e.target.submit();
+                // Add success message
+                const successAlert = document.createElement('div');
+                successAlert.className = 'alert alert-success mt-3';
+                successAlert.textContent = 'Zutat wurde erfolgreich hinzugefügt';
+                e.target.after(successAlert);
+
+                // Optional: Remove success message after 3 seconds
+                setTimeout(() => successAlert.remove(), 3000);
+
+                // Reset form and refresh page
+                e.target.reset();
+                location.reload();
             }
         } catch (err) {
             document.getElementById('errorAlert').textContent = 'Ein Fehler ist aufgetreten';

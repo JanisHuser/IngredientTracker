@@ -87,6 +87,7 @@ def add_ingredient():
         db.session.add(ingredient)
         db.session.commit()
         flash('Zutat erfolgreich hinzugefügt!', 'success')
+        return jsonify({'success': True}), 200
     return redirect(url_for('index'))
 
 
