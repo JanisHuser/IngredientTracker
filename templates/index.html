@@ -1,0 +1,106 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="row">
+    <div class="col-md-8">
+        <h2>Zutaten Liste</h2>
+    </div>
+    <div class="col-md-4">
+        <form class="mb-4" method="get" id="storeFilterForm">
+            <select id="store-select" name="store" class="form-select"
+                placeholder="Geschäft auswählen oder hinzufügen...">
+                <option value="">Alle Geschäfte</option>
+                {% for store in stores %}
+                <option value="{{ store.id }}" {% if selected_store|string==store.id|string %}selected{% endif %}>
+                    {{ store.name }}
+                </option>
+                {% endfor %}
+            </select>
+        </form>
+    </div>
+</div>
+
+<div class="row mb-4">
+    <div class="col">
+        <form method="post" action="{{ url_for('add_ingredient') }}" class="row g-3" id="ingredientForm">
+            <div class="col-auto">
+                <input type="text" class="form-control" name="name" placeholder="Neue Zutat" required>
+            </div>
+            <div class="col-auto">
+                <button type="submit" class="btn btn-primary">Hinzufügen</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="list-group">
+    {% for ingredient in ingredients %}
+    <a href="{{ url_for('ingredient_details', id=ingredient.id) }}" class="list-group-item list-group-item-action">
+        {{ ingredient.name }}
+    </a>
+    {% endfor %}
+</div>
+<div id="errorAlert" class="alert alert-danger mt-3" style="display: none"></div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        new TomSelect('#store-select', {
+            create: function (input) {
+                // Sende AJAX-Request zum Erstellen eines neuen Geschäfts
+                return fetch('/store/add', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ name: input })
+                })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            return {
+                                value: data.id,
+                                text: input
+                            };
+                        }
+                        throw new Error(data.error || 'Fehler beim Erstellen des Geschäfts');
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        alert(error.message);
+                        return false;
+                    });
+            },
+            onOptionAdd: function (value, data) {
+                if (this.getValue() === value) {
+                    document.getElementById('storeFilterForm').submit();
+                }
+            },
+            onChange: function (value) {
+                document.getElementById('storeFilterForm').submit();
+            }
+        });
+    });
+
+    document.getElementById('ingredientForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        try {
+            const response = await fetch(e.target.action, {
+                method: 'POST',
+                body: new FormData(e.target)
+            });
+
+            if (!response.ok) {
+                const data = await response.json();
+                document.getElementById('errorAlert').textContent = data.error;
+                document.getElementById('errorAlert').style.display = 'block';
+            } else {
+                e.target.submit();
+            }
+        } catch (err) {
+            document.getElementById('errorAlert').textContent = 'Ein Fehler ist aufgetreten';
+            document.getElementById('errorAlert').style.display = 'block';
+        }
+    });
+</script>
+{% endblock %}

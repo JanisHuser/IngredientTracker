@@ -1,0 +1,136 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>{{ ingredient.name }}</h2>
+
+<div class="row mb-4">
+    <div class="col">
+        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addVariantModal">
+            Neue Variante hinzufügen
+        </button>
+    </div>
+</div>
+
+<div class="row">
+    {% for variant in variants %}
+    <div class="col-md-4 mb-4">
+        <div class="card">
+            {% if variant.image_path %}
+            <img src="{{ url_for('static', filename=variant.image_path) }}" class="card-img-top"
+                alt="{{ variant.name }}">
+            {% endif %}
+            <div class="card-body">
+                <h5 class="card-title">{{ variant.store.name }} - {{ variant.name }}</h5>
+                <p class="card-text">
+                    Preis: CHF: {{ variant.price }}<br>
+                    Menge: {{ variant.quantity }}<br>
+                    Bewertung: {{ "%.1f"|format(variant.average_rating) }}/5
+                </p>
+                <div class="d-flex gap-2">
+                    <button class="btn btn-sm btn-primary" data-bs-toggle="modal"
+                        data-bs-target="#addReviewModal{{ variant.id }}">
+                        Bewertung abgeben
+                    </button>
+                    <button class="btn btn-sm btn-outline-secondary" type="button" data-bs-toggle="collapse"
+                        data-bs-target="#comments{{ variant.id }}" aria-expanded="false">
+                        Kommentare anzeigen
+                    </button>
+                </div>
+
+                <div class="collapse mt-3" id="comments{{ variant.id }}">
+                    <div class="card card-body bg-light">
+                        {% if variant.reviews %}
+                        {% for review in variant.reviews %}
+                        <div class="mb-2">
+                            <div class="fw-bold">Bewertung: {{ review.rating }}/5</div>
+                            <div class="text-muted small">{{ review.created_at.strftime('%d.%m.%Y') }}</div>
+                            {% if review.comment %}
+                            <div>{{ review.comment }}</div>
+                            {% endif %}
+                            <hr class="my-2">
+                        </div>
+                        {% endfor %}
+                        {% else %}
+                        <p class="mb-0">Noch keine Bewertungen vorhanden.</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Review Modal für jede Variante -->
+    <div class="modal fade" id="addReviewModal{{ variant.id }}" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Bewertung abgeben</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form method="post" action="{{ url_for('add_review') }}">
+                        <input type="hidden" name="variant_id" value="{{ variant.id }}">
+                        <div class="mb-3">
+                            <label class="form-label">Bewertung</label>
+                            <select name="rating" class="form-select" required>
+                                <option value="1">1 - Schlecht</option>
+                                <option value="2">2</option>
+                                <option value="3">3</option>
+                                <option value="4">4</option>
+                                <option value="5">5 - Sehr gut</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Kommentar</label>
+                            <textarea name="comment" class="form-control" rows="3"></textarea>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Bewertung speichern</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+<!-- Modal für neue Variante -->
+<div class="modal fade" id="addVariantModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Neue Variante hinzufügen</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form method="post" action="{{ url_for('add_variant') }}" enctype="multipart/form-data">
+                    <input type="hidden" name="ingredient_id" value="{{ ingredient.id }}">
+                    <div class="mb-3">
+                        <label class="form-label">Geschäft</label>
+                        <select name="store_id" class="form-select" required>
+                            {% for store in stores %}
+                            <option value="{{ store.id }}">{{ store.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Bezeichnung</label>
+                        <input type="text" name="name" class="form-control" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Preis (CHF)</label>
+                        <input type="number" name="price" class="form-control" step="0.01" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Menge</label>
+                        <input type="text" name="quantity" class="form-control" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Bild</label>
+                        <input type="file" name="image" class="form-control">
+                    </div>
+                    <button type="submit" class="btn btn-primary">Variante speichern</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
