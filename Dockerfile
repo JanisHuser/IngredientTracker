@@ -13,8 +13,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 # Copy requirements file
 COPY requirements.txt .
 
-# Install dependencies including gunicorn
-RUN pip install --no-cache-dir -r requirements.txt gunicorn
+# Install dependencies
+RUN pip install --no-cache-dir -r requirements.txt
 
 # Final stage
 FROM python:3.9-slim
@@ -44,7 +44,6 @@ VOLUME /app/instance
 ENV FLASK_APP=app.py
 ENV FLASK_ENV=production
 ENV PYTHONUNBUFFERED=1
-ENV WORKERS=4
 
 # Switch to non-root user
 USER appuser
