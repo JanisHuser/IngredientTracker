@@ -129,7 +129,7 @@ def add_variant():
         if file.filename:
             filename = secure_filename(file.filename)
             file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
-            image_path = f'uploads/{filename}'
+            image_path = filename
         else:
             image_path = None
 
