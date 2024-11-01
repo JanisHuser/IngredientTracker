@@ -8,8 +8,10 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY . .
 COPY docker-entrypoint.sh /docker-entrypoint.sh
 
-RUN mkdir -p static/uploads && \
-    chmod 777 static/uploads && \
+VOLUME instance
+
+RUN mkdir -p instance/uploads && \
+    chmod 777 instance/uploads && \
     chmod +x /docker-entrypoint.sh
 
 ENV FLASK_APP=app.py
